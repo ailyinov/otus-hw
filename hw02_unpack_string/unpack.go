@@ -1,7 +1,6 @@
 package hw02unpackstring
 
 import (
-	"bufio"
 	"errors"
 	"strconv"
 	"strings"
@@ -11,60 +10,47 @@ import (
 var ErrInvalidString = errors.New("invalid string")
 
 func Unpack(in string) (string, error) {
-	r := strings.NewReader(in)
-	s := bufio.NewScanner(r)
-	s.Split(bufio.ScanRunes)
-	sb := strings.Builder{}
-	var prevChar string
-	for s.Scan() {
-		ch := s.Text()
-		if len(prevChar) == 0 && !isLetter(ch) {
+	out := strings.Builder{}
+	var prevChar rune
+
+	for _, ch := range in {
+		if prevChar == 0 && !unicode.IsLetter(ch) {
 			return "", ErrInvalidString
 		}
-		if isNumeric(ch) {
+		if unicode.IsDigit(ch) {
 			if err := validateNumMod(prevChar); err != nil {
 				return "", err
 			}
-			if err := unpackLetter(prevChar, ch, &sb); err != nil {
+			if err := unpackLetter(prevChar, ch, &out); err != nil {
 				return "", err
 			}
 			prevChar = ch
 			continue
 		}
-		writeChar(prevChar, &sb)
+		writeChar(prevChar, &out)
 		prevChar = ch
 	}
-	writeChar(prevChar, &sb)
-	return sb.String(), nil
+	writeChar(prevChar, &out)
+	return out.String(), nil
 }
 
-func validateNumMod(prevChar string) error {
-	if len(prevChar) == 0 || isNumeric(prevChar) {
+func validateNumMod(prevChar rune) error {
+	if prevChar == 0 || unicode.IsDigit(prevChar) {
 		return ErrInvalidString
 	}
 	return nil
 }
 
-func writeChar(prevChar string, sb *strings.Builder) {
-	if len(prevChar) > 0 && !isNumeric(prevChar) {
-		sb.WriteString(prevChar)
+func writeChar(ch rune, sb *strings.Builder) {
+	if ch > 0 && !unicode.IsDigit(ch) {
+		sb.WriteString(string(ch))
 	}
 }
 
-func unpackLetter(ch string, num string, sb *strings.Builder) error {
-	if n, err := strconv.Atoi(num); err == nil {
-		sb.WriteString(strings.Repeat(ch, n))
+func unpackLetter(ch rune, num rune, sb *strings.Builder) error {
+	if n, err := strconv.Atoi(string(num)); err == nil {
+		sb.WriteString(strings.Repeat(string(ch), n))
 		return nil
 	}
 	return ErrInvalidString
-}
-
-func isNumeric(ch string) bool {
-	runes := []rune(ch)
-	return unicode.IsDigit(runes[0])
-}
-
-func isLetter(ch string) bool {
-	runes := []rune(ch)
-	return unicode.IsLetter(runes[0])
 }
