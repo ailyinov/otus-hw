@@ -22,7 +22,7 @@ func Top10(in string) (out []string) {
 	s := bufio.NewScanner(r)
 	s.Split(bufio.ScanWords)
 	for s.Scan() {
-		key := strings.ToLower(strings.Trim(s.Text(), "!.,-?:\"()"))
+		key := strings.ToLower(strings.Trim(s.Text(), "!.,-?:\"()';"))
 		if key != "" {
 			occurrences[key]++
 		}
