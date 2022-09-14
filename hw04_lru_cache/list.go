@@ -72,18 +72,17 @@ func (l *list) PushBack(v any) *ListItem {
 
 func (l *list) Remove(i *ListItem) {
 	if i, err := l.findItem(i); err == nil {
-		if i.Next != nil {
-			i.Next.Prev = i.Prev
-		} else {
+		if l.Back() == i {
 			l.back = i.Prev
-		}
-		if i.Prev != nil {
-			i.Prev.Next = i.Next
 		} else {
+			i.Next.Prev = i.Prev
+		}
+		if l.Front() == i {
 			l.front = i.Next
+		} else {
+			i.Prev.Next = i.Next
 		}
 		l.len--
-		return
 	}
 }
 
