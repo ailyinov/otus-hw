@@ -88,12 +88,10 @@ func (l *list) Remove(i *ListItem) {
 }
 
 func (l *list) findItem(i *ListItem) (*ListItem, error) {
-	curr := l.front
-	for curr != nil {
+	for curr := l.front; curr != nil; curr = curr.Next {
 		if i == curr {
 			return curr, nil
 		}
-		curr = curr.Next
 	}
 	return nil, fmt.Errorf("item not found: %s", i.Value)
 }
