@@ -27,9 +27,12 @@ func Top10(in string) (out []string) {
 			occurrences[key]++
 		}
 	}
-	var wordsCount wordsCountList
+	wordsCount := make(wordsCountList, len(occurrences))
+	i := 0
 	for w, c := range occurrences {
-		wordsCount = append(wordsCount, wordCount{w, c})
+		wordsCount[i].word = w
+		wordsCount[i].count = c
+		i++
 	}
 	sort.Slice(wordsCount, sortByCount(wordsCount))
 
@@ -40,11 +43,11 @@ func Top10(in string) (out []string) {
 	return out
 }
 
-func sortByCount(wcl wordsCountList) func(i int, j int) bool {
+func sortByCount(w wordsCountList) func(i int, j int) bool {
 	return func(i, j int) bool {
-		if wcl[i].count == wcl[j].count {
-			return wcl[i].word < wcl[j].word
+		if w[i].count == w[j].count {
+			return w[i].word < w[j].word
 		}
-		return wcl[i].count > wcl[j].count
+		return w[i].count > w[j].count
 	}
 }
