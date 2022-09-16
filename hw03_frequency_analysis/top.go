@@ -27,11 +27,9 @@ func Top10(in string) (out []string) {
 			occurrences[key]++
 		}
 	}
-	wordsCount := make(wordsCountList, len(occurrences))
-	i := 0
+	var wordsCount wordsCountList
 	for w, c := range occurrences {
-		wordsCount[i] = wordCount{w, c}
-		i++
+		wordsCount = append(wordsCount, wordCount{w, c})
 	}
 	sort.Slice(wordsCount, sortByCount(wordsCount))
 
