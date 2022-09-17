@@ -99,6 +99,7 @@ func (l *list) MoveToFront(i *ListItem) {
 	l.Remove(i)
 	i.Next = l.front
 	i.Prev = nil
+	l.front.Prev = i
 	l.front = i
 	l.len++
 }
