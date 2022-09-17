@@ -34,12 +34,10 @@ func (l *lruCache) Set(key Key, value any) bool {
 	}
 	_, ok := l.items[key]
 	if ok {
-		l.items[key].Value = ci
-		l.queue.MoveToFront(l.items[key])
+		l.updateItem(key, ci)
 	} else {
 		l.assureCapacity()
-		l.items[key] = l.queue.PushFront(ci)
-		l.capacity--
+		l.addItem(key, ci)
 	}
 	return ok
 }
@@ -63,4 +61,14 @@ func (l *lruCache) assureCapacity() {
 		l.queue.Remove(l.queue.Back())
 		l.capacity++
 	}
+}
+
+func (l *lruCache) addItem(key Key, ci *cacheItem) {
+	l.items[key] = l.queue.PushFront(ci)
+	l.capacity--
+}
+
+func (l *lruCache) updateItem(key Key, ci *cacheItem) {
+	l.items[key].Value = ci
+	l.queue.MoveToFront(l.items[key])
 }
