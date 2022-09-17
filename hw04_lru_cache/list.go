@@ -1,7 +1,5 @@
 package hw04lrucache
 
-import "fmt"
-
 type List interface {
 	Len() int
 	Front() *ListItem
@@ -71,28 +69,17 @@ func (l *list) PushBack(v any) *ListItem {
 }
 
 func (l *list) Remove(i *ListItem) {
-	if i, err := l.findItem(i); err == nil {
-		if l.Back() == i {
-			l.back = i.Prev
-		} else {
-			i.Next.Prev = i.Prev
-		}
-		if l.Front() == i {
-			l.front = i.Next
-		} else {
-			i.Prev.Next = i.Next
-		}
-		l.len--
+	if l.Back() == i {
+		l.back = i.Prev
+	} else {
+		i.Next.Prev = i.Prev
 	}
-}
-
-func (l *list) findItem(i *ListItem) (*ListItem, error) {
-	for curr := l.front; curr != nil; curr = curr.Next {
-		if i == curr {
-			return curr, nil
-		}
+	if l.Front() == i {
+		l.front = i.Next
+	} else {
+		i.Prev.Next = i.Next
 	}
-	return nil, fmt.Errorf("item not found: %s", i.Value)
+	l.len--
 }
 
 func (l *list) MoveToFront(i *ListItem) {
