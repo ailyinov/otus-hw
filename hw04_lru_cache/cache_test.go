@@ -55,25 +55,47 @@ func TestCache(t *testing.T) {
 }
 
 func TestCacheMultithreading(t *testing.T) {
-	t.Skip() // Remove me if task with asterisk completed.
+	t.Run("big cache", func(t *testing.T) {
+		c := NewCache(100_000)
+		wg := &sync.WaitGroup{}
+		wg.Add(2)
 
-	c := NewCache(10)
-	wg := &sync.WaitGroup{}
-	wg.Add(2)
+		go func() {
+			defer wg.Done()
+			for i := 0; i < 1_000_0000; i++ {
+				c.Set(Key(strconv.Itoa(i)), i)
+			}
+		}()
 
-	go func() {
-		defer wg.Done()
-		for i := 0; i < 1_000_000; i++ {
-			c.Set(Key(strconv.Itoa(i)), i)
-		}
-	}()
+		go func() {
+			defer wg.Done()
+			for i := 0; i < 1_000_0000; i++ {
+				c.Get(Key(strconv.Itoa(rand.Intn(1_000_000))))
+			}
+		}()
 
-	go func() {
-		defer wg.Done()
-		for i := 0; i < 1_000_000; i++ {
-			c.Get(Key(strconv.Itoa(rand.Intn(1_000_000))))
-		}
-	}()
+		wg.Wait()
+	})
 
-	wg.Wait()
+	t.Run("low cache", func(t *testing.T) {
+		c := NewCache(2)
+		wg := &sync.WaitGroup{}
+		wg.Add(2)
+
+		go func() {
+			defer wg.Done()
+			for i := 0; i < 1_000_0000; i++ {
+				c.Set(Key(strconv.Itoa(i)), i)
+			}
+		}()
+
+		go func() {
+			defer wg.Done()
+			for i := 0; i < 1_000_0000; i++ {
+				c.Get(Key(strconv.Itoa(rand.Intn(1_000_000))))
+			}
+		}()
+
+		wg.Wait()
+	})
 }
