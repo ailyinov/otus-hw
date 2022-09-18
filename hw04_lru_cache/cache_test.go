@@ -1,6 +1,7 @@
 package hw04lrucache
 
 import (
+	"fmt"
 	"math/rand"
 	"strconv"
 	"sync"
@@ -25,6 +26,12 @@ func TestCache(t *testing.T) {
 
 		wasInCache := c.Set("aaa", 100)
 		require.False(t, wasInCache)
+
+		wasInCache = c.Set("aaa", 200)
+		require.True(t, wasInCache)
+
+		wasInCache = c.Set("aaa", 100)
+		require.True(t, wasInCache)
 
 		wasInCache = c.Set("bbb", 200)
 		require.False(t, wasInCache)
@@ -55,7 +62,7 @@ func TestCache(t *testing.T) {
 }
 
 func TestCacheMultithreading(t *testing.T) {
-	t.Run("big cache", func(t *testing.T) {
+	t.Run("high cache capacity", func(t *testing.T) {
 		c := NewCache(100_000)
 		wg := &sync.WaitGroup{}
 		wg.Add(2)
@@ -67,17 +74,70 @@ func TestCacheMultithreading(t *testing.T) {
 			}
 		}()
 
+		var hit, miss int
 		go func() {
 			defer wg.Done()
 			for i := 0; i < 1_000_0000; i++ {
-				c.Get(Key(strconv.Itoa(rand.Intn(1_000_000))))
+				if _, ok := c.Get(Key(strconv.Itoa(rand.Intn(1_000_000)))); ok {
+					hit++
+				} else {
+					miss++
+				}
 			}
 		}()
 
 		wg.Wait()
+		fmt.Printf("hits: %d, miss: %d\n", hit, miss)
 	})
 
-	t.Run("low cache", func(t *testing.T) {
+	t.Run("concurrent get set", func(t *testing.T) {
+		c := NewCache(1000)
+		wg := &sync.WaitGroup{}
+		wg.Add(4)
+		go func() {
+			defer wg.Done()
+			for i := 0; i < 1_000; i++ {
+				c.Set(Key(strconv.Itoa(i)), i)
+				c.Set("aaa", i)
+			}
+		}()
+
+		go func() {
+			defer wg.Done()
+			for i := 0; i < 1_000; i++ {
+				c.Set(Key(strconv.Itoa(i)), i)
+				c.Set("aaa", i)
+			}
+		}()
+
+		var hit, miss int
+		go func() {
+			defer wg.Done()
+			for i := 0; i < 1_000; i++ {
+				if _, ok := c.Get(Key(strconv.Itoa(rand.Intn(500)))); ok {
+					hit++
+				} else {
+					miss++
+				}
+			}
+		}()
+		go func() {
+			defer wg.Done()
+			for i := 0; i < 1_000; i++ {
+				if _, ok := c.Get(Key(strconv.Itoa(rand.Intn(500)))); ok {
+					hit++
+				} else {
+					miss++
+				}
+			}
+		}()
+
+		wg.Wait()
+
+		fmt.Printf("hits: %d, miss: %d\n", hit, miss)
+	})
+
+	t.Run("low cache capacity", func(t *testing.T) {
 		c := NewCache(2)
 		wg := &sync.WaitGroup{}
 		wg.Add(2)
