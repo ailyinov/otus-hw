@@ -106,7 +106,6 @@ func TestCache(t *testing.T) {
 		val, ok = c.Get("aaa")
 		require.False(t, ok)
 		require.Nil(t, val)
-
 	})
 
 	t.Run("cache updated", func(t *testing.T) {
