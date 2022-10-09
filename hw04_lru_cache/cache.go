@@ -11,10 +11,11 @@ type Cache interface {
 }
 
 type lruCache struct {
-	capacity int
-	queue    List
-	items    map[Key]*ListItem
-	mu       sync.Mutex
+	capacity     int
+	currCapacity int
+	queue        List
+	items        map[Key]*ListItem
+	mu           sync.Mutex
 }
 
 type cacheItem struct {
@@ -24,9 +25,10 @@ type cacheItem struct {
 
 func NewCache(capacity int) Cache {
 	return &lruCache{
-		capacity: capacity,
-		queue:    NewList(),
-		items:    make(map[Key]*ListItem, capacity),
+		capacity:     capacity,
+		currCapacity: capacity,
+		queue:        NewList(),
+		items:        make(map[Key]*ListItem, capacity),
 	}
 }
 
@@ -66,20 +68,21 @@ func (l *lruCache) Clear() {
 
 	l.queue = NewList()
 	l.items = make(map[Key]*ListItem, l.capacity)
+	l.currCapacity = l.capacity
 }
 
 func (l *lruCache) assureCapacity() {
-	if l.capacity == 0 {
+	if l.currCapacity == 0 {
 		delete(l.items, l.queue.Back().Value.(*cacheItem).key)
 		l.queue.Remove(l.queue.Back())
-		l.capacity++
+		l.currCapacity++
 	}
 }
 
 func (l *lruCache) addItem(key Key, ci *cacheItem) {
 	l.assureCapacity()
 	l.items[key] = l.queue.PushFront(ci)
-	l.capacity--
+	l.currCapacity--
 }
 
 func (l *lruCache) updateItem(key Key, ci *cacheItem) {

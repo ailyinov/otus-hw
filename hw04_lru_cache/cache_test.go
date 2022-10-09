@@ -56,7 +56,7 @@ func TestCache(t *testing.T) {
 	})
 
 	t.Run("purge logic", func(t *testing.T) {
-		c := NewCache(5)
+		c := NewCache(3)
 
 		wasInCache := c.Set("aaa", 100)
 		require.False(t, wasInCache)
@@ -69,6 +69,7 @@ func TestCache(t *testing.T) {
 
 		c.Clear()
 
+		// cache clean
 		val, ok := c.Get("aaa")
 		require.False(t, ok)
 		require.Nil(t, val)
@@ -77,6 +78,11 @@ func TestCache(t *testing.T) {
 		require.False(t, ok)
 		require.Nil(t, val)
 
+		val, ok = c.Get("ccc")
+		require.False(t, ok)
+		require.Nil(t, val)
+
+		// cache works and same capacity
 		wasInCache = c.Set("aaa", 400)
 		require.False(t, wasInCache)
 
@@ -91,9 +97,16 @@ func TestCache(t *testing.T) {
 		require.True(t, ok)
 		require.Equal(t, 200, val)
 
-		val, ok = c.Get("ccc")
+		wasInCache = c.Set("ccc", 400)
+		require.False(t, wasInCache)
+
+		wasInCache = c.Set("ddd", 500)
+		require.False(t, wasInCache)
+
+		val, ok = c.Get("aaa")
 		require.False(t, ok)
 		require.Nil(t, val)
+
 	})
 
 	t.Run("cache updated", func(t *testing.T) {
