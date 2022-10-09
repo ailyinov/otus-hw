@@ -31,38 +31,41 @@ func NewCache(capacity int) Cache {
 }
 
 func (l *lruCache) Set(key Key, value interface{}) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
 	ci := &cacheItem{
 		key:   key,
 		value: value,
 	}
 
-	l.mu.Lock()
 	_, ok := l.items[key]
 	if ok {
 		l.updateItem(key, ci)
 	} else {
 		l.addItem(key, ci)
 	}
-	l.mu.Unlock()
 	return ok
 }
 
 func (l *lruCache) Get(key Key) (value interface{}, ok bool) {
 	l.mu.Lock()
+	defer l.mu.Unlock()
+
 	i, ok := l.items[key]
 	if ok {
 		l.queue.MoveToFront(i)
 		value = i.Value.(*cacheItem).value
 	}
-	l.mu.Unlock()
 	return value, ok
 }
 
 func (l *lruCache) Clear() {
 	l.mu.Lock()
+	defer l.mu.Unlock()
+
 	l.queue = NewList()
 	l.items = make(map[Key]*ListItem, l.capacity)
-	l.mu.Unlock()
 }
 
 func (l *lruCache) assureCapacity() {

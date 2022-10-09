@@ -1,7 +1,6 @@
 package hw04lrucache
 
 import (
-	"fmt"
 	"math/rand"
 	"strconv"
 	"sync"
@@ -96,6 +95,33 @@ func TestCache(t *testing.T) {
 		require.False(t, ok)
 		require.Nil(t, val)
 	})
+
+	t.Run("cache updated", func(t *testing.T) {
+		c := NewCache(3)
+
+		wasInCache := c.Set("aaa", 100)
+		require.False(t, wasInCache)
+
+		wasInCache = c.Set("bbb", 200)
+		require.False(t, wasInCache)
+
+		wasInCache = c.Set("ccc", 300)
+		require.False(t, wasInCache)
+
+		wasInCache = c.Set("ddd", 400)
+		require.False(t, wasInCache)
+
+		val, ok := c.Get("aaa")
+		require.False(t, ok)
+		require.Nil(t, val)
+
+		wasInCache = c.Set("eee", 400)
+		require.False(t, wasInCache)
+
+		val, ok = c.Get("bbb")
+		require.False(t, ok)
+		require.Nil(t, val)
+	})
 }
 
 func TestCacheMultithreading(t *testing.T) {
@@ -111,20 +137,14 @@ func TestCacheMultithreading(t *testing.T) {
 			}
 		}()
 
-		var hit, miss int
 		go func() {
 			defer wg.Done()
 			for i := 0; i < 1_000_0000; i++ {
-				if _, ok := c.Get(Key(strconv.Itoa(rand.Intn(1_000_000)))); ok {
-					hit++
-				} else {
-					miss++
-				}
+				c.Get(Key(strconv.Itoa(rand.Intn(1_000_000))))
 			}
 		}()
 
 		wg.Wait()
-		fmt.Printf("hits: %d, miss: %d\n", hit, miss)
 	})
 
 	t.Run("concurrent get set", func(t *testing.T) {
@@ -147,31 +167,20 @@ func TestCacheMultithreading(t *testing.T) {
 			}
 		}()
 
-		var hit, miss int
 		go func() {
 			defer wg.Done()
 			for i := 0; i < 1_000; i++ {
-				if _, ok := c.Get(Key(strconv.Itoa(rand.Intn(500)))); ok {
-					hit++
-				} else {
-					miss++
-				}
+				c.Get(Key(strconv.Itoa(rand.Intn(500))))
 			}
 		}()
 		go func() {
 			defer wg.Done()
 			for i := 0; i < 1_000; i++ {
-				if _, ok := c.Get(Key(strconv.Itoa(rand.Intn(500)))); ok {
-					hit++
-				} else {
-					miss++
-				}
+				c.Get(Key(strconv.Itoa(rand.Intn(500))))
 			}
 		}()
 
 		wg.Wait()
-
-		fmt.Printf("hits: %d, miss: %d\n", hit, miss)
 	})
 
 	t.Run("low cache capacity", func(t *testing.T) {
