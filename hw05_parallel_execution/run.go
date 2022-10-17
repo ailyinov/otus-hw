@@ -40,13 +40,12 @@ func Run(tasks []Task, n, m int) error {
 	}
 
 	errsCount := 0
-	for k := 0; k <= len(tasks); k++ {
+	for k := 0; k < len(tasks); k++ {
 		if err := <-results; err != nil {
 			if errsCount++; errsCount >= m {
 				return ErrErrorsLimitExceeded
 			}
 		}
 	}
-
 	return nil
 }
