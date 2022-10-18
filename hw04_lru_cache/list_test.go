@@ -19,13 +19,22 @@ func TestList(t *testing.T) {
 		l := NewList()
 
 		l.PushFront(10) // [10]
-		l.PushBack(20)  // [10, 20]
-		l.PushBack(30)  // [10, 20, 30]
+
+		l.MoveToFront(l.Front()) // :)
+
+		l.PushBack(20) // [10, 20]
+		l.PushBack(30) // [10, 20, 30]
 		require.Equal(t, 3, l.Len())
 
 		middle := l.Front().Next // 20
 		l.Remove(middle)         // [10, 30]
 		require.Equal(t, 2, l.Len())
+
+		// swap 2 elements
+		l.MoveToFront(l.Front())
+		l.MoveToFront(l.Back())
+		l.MoveToFront(l.Back())
+		l.MoveToFront(l.Front())
 
 		for i, v := range [...]int{40, 50, 60, 70, 80} {
 			if i%2 == 0 {
