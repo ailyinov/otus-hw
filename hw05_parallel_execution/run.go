@@ -1,54 +1,45 @@
 package hw05parallelexecution
 
 import (
-	"context"
 	"errors"
+	"sync"
+	"sync/atomic"
 )
 
 var ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
 
 type Task func() error
 
-func worker(jobs <-chan Task, results chan<- error, ctx context.Context) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			for j := range jobs {
-				results <- j()
-			}
-		}
-	}
-}
-
 // Run starts tasks in n goroutines and stops its work when receiving m errors from tasks.
 func Run(tasks []Task, n, m int) error {
-	jobs := make(chan Task, n)
-	results := make(chan error, len(tasks))
-	defer close(jobs)
-
-	ctx, cancelCtx := context.WithCancel(context.Background())
-	defer cancelCtx()
-
-	for w := 0; w < n; w++ {
-		go worker(jobs, results, ctx)
+	var cntErr int32
+	taskCh := make(chan Task)
+	wg := sync.WaitGroup{}
+	wg.Add(n)
+	for i := 0; i < n; i++ {
+		go func() {
+			defer wg.Done()
+			for task := range taskCh {
+				if err := task(); err != nil {
+					atomic.AddInt32(&cntErr, 1)
+				}
+			}
+		}()
 	}
 
-	for _, t := range tasks {
-		jobs <- t
-	}
-
-	errsCount := 0
-	for range tasks {
-		if err := <-results; err != nil {
-			if m <= 0 {
-				continue
-			}
-			if errsCount++; errsCount >= m {
-				return ErrErrorsLimitExceeded
-			}
+	for _, task := range tasks {
+		if atomic.LoadInt32(&cntErr) >= int32(m) {
+			break
 		}
+		taskCh <- task
 	}
+
+	close(taskCh)
+	wg.Wait()
+
+	if cntErr >= int32(m) {
+		return ErrErrorsLimitExceeded
+	}
+
 	return nil
 }
