@@ -29,10 +29,25 @@ func TestPipeline(t *testing.T) {
 		}
 	}
 
+	gErr := func(_ string, f func(v interface{}) interface{}) Stage {
+		return func(in In) Out {
+			out := make(Bi)
+			close(out)
+			return out
+		}
+	}
+
 	stages := []Stage{
 		g("Dummy", func(v interface{}) interface{} { return v }),
 		g("Multiplier (* 2)", func(v interface{}) interface{} { return v.(int) * 2 }),
 		g("Adder (+ 100)", func(v interface{}) interface{} { return v.(int) + 100 }),
+		g("Stringifier", func(v interface{}) interface{} { return strconv.Itoa(v.(int)) }),
+	}
+
+	stagesWithErr := []Stage{
+		g("Dummy", func(v interface{}) interface{} { return v }),
+		g("Multiplier (* 2)", func(v interface{}) interface{} { return v.(int) * 2 }),
+		gErr("Err", func(v interface{}) interface{} { return v.(int) + 100 }),
 		g("Stringifier", func(v interface{}) interface{} { return strconv.Itoa(v.(int)) }),
 	}
 
@@ -89,5 +104,24 @@ func TestPipeline(t *testing.T) {
 
 		require.Len(t, result, 0)
 		require.Less(t, int64(elapsed), int64(abortDur)+int64(fault))
+	})
+
+	t.Run("invalid stage case", func(t *testing.T) {
+		in := make(Bi)
+		data := []int{1, 2, 3, 4, 5}
+
+		go func() {
+			for _, v := range data {
+				in <- v
+			}
+			close(in)
+		}()
+
+		result := make([]string, 0, 10)
+		for s := range ExecutePipeline(in, nil, stagesWithErr...) {
+			result = append(result, s.(string))
+		}
+
+		require.Equal(t, []string{}, result)
 	})
 }
