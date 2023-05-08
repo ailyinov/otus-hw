@@ -3,8 +3,9 @@ package main
 import (
 	"errors"
 	"io"
-	"math"
 	"os"
+
+	"github.com/cheggaaa/pb/v3"
 )
 
 const buffSize = 64
@@ -15,6 +16,7 @@ var (
 )
 
 func Copy(fromPath, toPath string, offset, limit int64) (err error) {
+	pbStart := limit
 	if s, err := os.Stat(fromPath); err != nil {
 		return err
 	} else {
@@ -23,6 +25,9 @@ func Copy(fromPath, toPath string, offset, limit int64) (err error) {
 		}
 		if offset > s.Size() {
 			return ErrOffsetExceedsFileSize
+		}
+		if pbStart == 0 || (limit+offset) > s.Size() {
+			pbStart = s.Size() - offset
 		}
 	}
 	source, err := os.Open(fromPath)
@@ -45,8 +50,13 @@ func Copy(fromPath, toPath string, offset, limit int64) (err error) {
 	if err != nil {
 		return err
 	}
-	buf := make([]byte, int(math.Min(float64(buffSize), float64(limit))))
+
+	buf := make([]byte, buffSize)
 	writtenCnt := 0
+	bar := pb.Start64(pbStart)
+	defer func() {
+		bar.Finish()
+	}()
 	for {
 		n, err := source.Read(buf)
 		if err != nil && err != io.EOF {
@@ -63,6 +73,7 @@ func Copy(fromPath, toPath string, offset, limit int64) (err error) {
 			return err
 		}
 		writtenCnt += n
+		bar.Add(n)
 		if int(limit) > 0 && writtenCnt == int(limit) {
 			return nil
 		}

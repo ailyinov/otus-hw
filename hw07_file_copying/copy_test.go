@@ -74,6 +74,14 @@ func TestCopy(t *testing.T) {
 			limit:  2000,
 			resLen: 4,
 			fail:   false,
+		}, {
+			name:   "success limit 0",
+			from:   "testdata/input2.txt",
+			to:     "/tmp/test.txt",
+			offset: 0,
+			limit:  0,
+			resLen: 4,
+			fail:   false,
 		},
 	}
 
