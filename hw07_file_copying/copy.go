@@ -51,10 +51,7 @@ func Copy(fromPath, toPath string, offset, limit int64) (err error) {
 	buf := make([]byte, buffSize)
 	writtenCnt := 0
 
-	pbStart := limit
-	if pbStart == 0 || (limit+offset) > s.Size() {
-		pbStart = s.Size() - offset
-	}
+	pbStart := countBarSize(limit, offset, s)
 	bar := pb.Start64(pbStart)
 	defer func() {
 		bar.Finish()
@@ -83,4 +80,12 @@ func Copy(fromPath, toPath string, offset, limit int64) (err error) {
 	}
 
 	return nil
+}
+
+func countBarSize(limit int64, offset int64, s os.FileInfo) int64 {
+	pbStart := limit
+	if pbStart == 0 || (limit+offset) > s.Size() {
+		pbStart = s.Size() - offset
+	}
+	return pbStart
 }
