@@ -16,20 +16,17 @@ var (
 )
 
 func Copy(fromPath, toPath string, offset, limit int64) (err error) {
-	pbStart := limit
-	if s, err := os.Stat(fromPath); err != nil {
+	s, err := os.Stat(fromPath)
+	if err != nil {
 		return err
-	} else {
-		if s.Size() == 0 || s.IsDir() {
-			return ErrUnsupportedFile
-		}
-		if offset > s.Size() {
-			return ErrOffsetExceedsFileSize
-		}
-		if pbStart == 0 || (limit+offset) > s.Size() {
-			pbStart = s.Size() - offset
-		}
 	}
+	if s.Size() == 0 || s.IsDir() {
+		return ErrUnsupportedFile
+	}
+	if offset > s.Size() {
+		return ErrOffsetExceedsFileSize
+	}
+
 	source, err := os.Open(fromPath)
 	defer func() {
 		err = source.Close()
@@ -53,10 +50,16 @@ func Copy(fromPath, toPath string, offset, limit int64) (err error) {
 
 	buf := make([]byte, buffSize)
 	writtenCnt := 0
+
+	pbStart := limit
+	if pbStart == 0 || (limit+offset) > s.Size() {
+		pbStart = s.Size() - offset
+	}
 	bar := pb.Start64(pbStart)
 	defer func() {
 		bar.Finish()
 	}()
+
 	for {
 		n, err := source.Read(buf)
 		if err != nil && err != io.EOF {
