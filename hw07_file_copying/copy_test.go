@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"math"
 	"os"
 	"testing"
 
@@ -86,7 +85,7 @@ func TestCopy(t *testing.T) {
 	}
 
 	_, _ = os.Create("/tmp/empty")
-	buf := make([]byte, int(math.Min(float64(buffSize), float64(1000))))
+	buf := make([]byte, 64)
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
