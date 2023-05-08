@@ -2,9 +2,10 @@ package main
 
 import (
 	"errors"
-	pb "github.com/cheggaaa/pb/v3"
 	"io"
 	"os"
+
+	pb "github.com/cheggaaa/pb/v3"
 )
 
 const buffSize = 64
