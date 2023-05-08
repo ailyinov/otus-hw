@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"github.com/cheggaaa/pb/v3"
+	pb "github.com/cheggaaa/pb/v3"
 	"io"
 	"os"
 )
