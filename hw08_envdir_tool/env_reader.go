@@ -2,8 +2,8 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"os"
-	"strings"
 )
 
 type Environment map[string]EnvValue
@@ -63,10 +63,9 @@ func readValue(reader *bufio.Reader) (string, error) {
 	return string(outLine), err
 }
 
-func cleanValue(inValue string) string {
-	if inValue == "" {
+func cleanValue(val string) string {
+	if val == "" {
 		return ""
 	}
-	v := strings.TrimRight(inValue, ` 	`)
-	return strings.ReplaceAll(v, `\0`, "\n")
+	return string(bytes.Replace([]byte(val), []byte("\x00"), []byte("\n"), -1))
 }

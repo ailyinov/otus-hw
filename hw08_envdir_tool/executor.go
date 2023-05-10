@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -14,14 +15,20 @@ func RunCmd(cmd []string, env Environment) (returnCode int) {
 	c := exec.Command(cmd[0], cmd[1:]...)
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
-	c.Env = os.Environ()
 	for envVar, val := range env {
 		if val.NeedRemove {
-			c.Env = append(c.Env, envVar+"=")
+			err := os.Unsetenv(envVar)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
 		} else {
-			c.Env = append(c.Env, envVar+"="+val.Value)
+			err := os.Setenv(envVar, val.Value)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
 		}
 	}
+	c.Env = os.Environ()
 
 	err := c.Run()
 

@@ -25,14 +25,14 @@ func TestRunCmd(t *testing.T) {
 				},
 			},
 		}, {
-			name: "echo $HOME",
+			name: "echo $UNSET",
 			cmd: []string{
 				"/bin/sh",
 				"-c",
-				"echo $HOME",
+				"echo $UNSET",
 			},
 			env: Environment{
-				"HOME": EnvValue{
+				"UNSET": EnvValue{
 					NeedRemove: true,
 				},
 			},
@@ -49,7 +49,7 @@ func TestRunCmd(t *testing.T) {
 	t.Run("testdata", func(t *testing.T) {
 		env, err := ReadDir("testdata/env")
 		require.NoError(t, err)
-		str := []string{"/bin/sh", "-c", "echo $PATH"}
+		str := []string{"/bin/sh", "-c", "echo $FOO"}
 		RunCmd(str, env)
 	})
 }
