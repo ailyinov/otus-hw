@@ -3,6 +3,8 @@ package hw09structvalidator
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/stretchr/testify/require"
+	"strings"
 	"testing"
 )
 
@@ -22,6 +24,7 @@ type (
 
 	App struct {
 		Version string `validate:"len:5"`
+		Ports   []int  `validate:"max:5000|min:4000"`
 	}
 
 	Token struct {
@@ -42,7 +45,22 @@ func TestValidate(t *testing.T) {
 		expectedErr error
 	}{
 		{
-			// Place your code here.
+			in: User{
+				ID:     strings.Repeat("1q2w3e", 6),
+				Name:   "Jay",
+				Age:    45,
+				Email:  "oneplusone@equalstube.id",
+				Role:   "Surfer",
+				Phones: []string{"+6844432555"},
+				meta:   nil,
+			},
+			expectedErr: nil,
+		},
+		{
+			in: App{
+				Version: "12",
+				Ports:   []int{5001, 5002, 50003, 4040},
+			},
 		},
 		// ...
 		// Place your code here.
@@ -53,7 +71,8 @@ func TestValidate(t *testing.T) {
 			tt := tt
 			t.Parallel()
 
-			// Place your code here.
+			err := Validate(&tt.in)
+			require.Equal(t, tt.expectedErr, err)
 			_ = tt
 		})
 	}
