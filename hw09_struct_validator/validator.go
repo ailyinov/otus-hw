@@ -79,18 +79,20 @@ func Validate(v interface{}) error {
 			}
 		case reflect.Array | reflect.Slice:
 			sliceKind := valueType.Field(i).Type.Elem().Kind()
-			//for _, r := range rules {
-			//	validators = append(validators, NewSlice(fieldName, fieldValue, NewValidationRule(r)))
-			//}
-			if sliceKind == reflect.String {
+			switch sliceKind {
+			case reflect.String:
 				for _, r := range rules {
 					validators = append(validators, NewStrSlice(fieldName, fieldValue.Interface().([]string), NewValidationRule(r)))
 				}
-			}
-			if sliceKind == reflect.Int {
+			case reflect.Int:
 				for _, r := range rules {
 					validators = append(validators, NewIntSlice(fieldName, fieldValue.Interface().([]int), NewValidationRule(r)))
 				}
+			default:
+				valErrs = append(valErrs, ValidationError{
+					Field: fieldName,
+					Err:   ErrNoValidator,
+				})
 			}
 		default:
 			valErrs = append(valErrs, ValidationError{
@@ -103,7 +105,7 @@ func Validate(v interface{}) error {
 
 	for _, v := range validators {
 		valid, err := v.Valid()
-		if err != nil && !errors.Is(err, ErrNotValidValue) {
+		if err != nil && (!errors.Is(err, ErrNotValidValue) && !errors.Is(err, ErrNoValidator)) {
 			return err
 		}
 		if !valid {
@@ -125,20 +127,3 @@ func NewValidationRule(rule string) *ValidationRule {
 		Value: rVal,
 	}
 }
-
-//func (r ValidationRule) IntVal(value int) *validator.IntVal {
-//	intVal := &validator.IntVal{
-//		value:     value,
-//		ruleValue: r.value,
-//	}
-//	switch r.Name {
-//	case "min":
-//		intVal.valid = intVal.min
-//	case "max":
-//		intVal.valid = intVal.max
-//	case "in":
-//		intVal.valid = intVal.in
-//
-//	}
-//	return intVal
-//}

@@ -27,6 +27,8 @@ func NewStrVal(field string, value string, rule *ValidationRule) *StrVal {
 		strVal.valid = strVal.regexp
 	case "in":
 		strVal.valid = strVal.in
+	default:
+		strVal.valid = strVal.err
 	}
 	return strVal
 }
@@ -37,6 +39,10 @@ func (s *StrVal) Valid() (bool, error) {
 
 func (s *StrVal) Field() string {
 	return s.field
+}
+
+func (s *StrVal) err() (bool, error) {
+	return false, ErrNoValidator
 }
 
 func (s *StrVal) len() (bool, error) {

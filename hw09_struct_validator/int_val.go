@@ -26,7 +26,8 @@ func NewIntVal(field string, value int, rule *ValidationRule) *IntVal {
 		intVal.valid = intVal.max
 	case "in":
 		intVal.valid = intVal.in
-
+	default:
+		intVal.valid = intVal.err
 	}
 	return intVal
 }
@@ -37,6 +38,10 @@ func (i *IntVal) Valid() (bool, error) {
 
 func (i *IntVal) Field() string {
 	return i.field
+}
+
+func (i *IntVal) err() (bool, error) {
+	return false, ErrNoValidator
 }
 
 func (i *IntVal) max() (bool, error) {

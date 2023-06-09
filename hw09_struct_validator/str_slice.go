@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 )
 
 type StrSlice struct {
@@ -33,7 +32,8 @@ func (s *StrSlice) Valid() (bool, error) {
 		}
 	}
 	if !okAll {
-		return okAll, fmt.Errorf("int slise contains errors: %s", strings.Join(errs, ", "))
+		return okAll, fmt.Errorf("zxzxzx: %w", ErrNotValidValue)
+		//return okAll, fmt.Errorf("%w int slise contains errors: %s", ErrNotValidValue, strings.Join(errs, ", "))
 	}
 	return okAll, nil
 }

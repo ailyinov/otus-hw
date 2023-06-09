@@ -33,7 +33,7 @@ func (i *IntSlice) Valid() (bool, error) {
 		}
 	}
 	if !okAll {
-		return okAll, fmt.Errorf("int slise contains errors: %s", strings.Join(errs, ", "))
+		return okAll, fmt.Errorf("%w, int slise contains errors: %s", ErrNotValidValue, strings.Join(errs, ", "))
 	}
 	return okAll, nil
 }
